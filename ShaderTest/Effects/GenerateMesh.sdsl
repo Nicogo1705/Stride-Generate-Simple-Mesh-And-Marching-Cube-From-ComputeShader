@@ -1,0 +1,80 @@
+// Compute Shader to Generate a Simple Triangle Mesh
+shader GenerateMesh : ComputeShaderBase
+{
+    // Define constants for mesh generation
+    cbuffer param
+    {
+        float MarchingRadius; 
+        uint PointCount; 
+    };
+
+    // Define the voxel point Input structure
+    struct VoxelPoint
+    {
+        float3 Position;
+        uint MeshID;
+    };
+    // Define the vertex output structure
+    struct VertexOutput
+    {
+        float3 Position : POSITION;
+        float3 Normal : NORMAL;
+        float2 TextureCoordinate : TEXCOORD0;
+    };
+
+    stage RWStructuredBuffer<VoxelPoint> VoxelPointBuffer;
+    stage RWStructuredBuffer<VertexOutput> VertexBuffer;
+    stage RWStructuredBuffer<uint> IndexBuffer;
+
+    override void Compute()
+    {
+        // Calculate vertex and index offsets based on dispatchThreadID
+        uint tx = streams.GroupId.x;
+        
+        if  (tx >= PointCount)
+        {
+            return;
+        }
+        VoxelPoint inp = VoxelPointBuffer[tx];
+        uint indexV = tx * 3; //threadX * 3 vertexOutput
+        uint indexI = tx * 6; //threadX * 6 index
+
+        // Generate vertices and indices for a simple triangle
+        // You can customize the mesh generation logic here
+        float3 v0 = float3(inp.Position.x + 0.0f, inp.Position.y + 0.0f, inp.Position.z + 0.0f);
+        float3 v1 = float3(inp.Position.x + 0.0f, inp.Position.y + 1.0f, inp.Position.z + 0.0f);
+        float3 v2 = float3(inp.Position.x + 1.0f, inp.Position.y + 0.0f, inp.Position.z + 0.0f);
+
+        // Calculate the normal for the triangle (assuming it's facing towards positive Z-axis)
+        float3 normal = cross(v1 - v0, v2 - v0);
+
+        // Store vertices in the VertexBuffer with position, normal, and texture coordinates
+        VertexOutput vertex0;
+        vertex0.Position = v0;
+        vertex0.Normal = normal;
+        vertex0.TextureCoordinate = float2(0.0f, 0.0f);
+
+        VertexOutput vertex1;
+        vertex1.Position = v1;
+        vertex1.Normal = normal;
+        vertex1.TextureCoordinate = float2(1.0f, 0.0f);
+
+        VertexOutput vertex2;
+        vertex2.Position = v2;
+        vertex2.Normal = normal;
+        vertex2.TextureCoordinate = float2(0.0f, 1.0f);
+
+        // Append the vertices to the VertexBuffer
+        VertexBuffer[indexV+0] = vertex0;
+        VertexBuffer[indexV+1] = vertex1;
+        VertexBuffer[indexV+2] = vertex2;
+
+        //// Store indices in the IndexBuffer
+        IndexBuffer[indexI+0] = indexV + 0;
+        IndexBuffer[indexI+1] = indexV + 1;
+        IndexBuffer[indexI+2] = indexV + 2;
+        IndexBuffer[indexI+3] = indexV + 0;
+        IndexBuffer[indexI+4] = indexV + 2;
+        IndexBuffer[indexI+5] = indexV + 1;
+    }
+};

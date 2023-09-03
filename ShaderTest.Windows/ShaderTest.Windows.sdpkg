@@ -1,0 +1,18 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: ShaderTest.Windows
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+ResourceFolders:
+    - !dir Resources
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - d8d560e8-e039-4480-b0d1-f4d89a4888c4:Materials/MaterialBase
