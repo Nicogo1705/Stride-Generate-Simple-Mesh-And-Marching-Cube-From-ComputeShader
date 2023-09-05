@@ -1,6 +1,6 @@
 # Stride ShaderTest - GenerateMarchingCube
 
-GenerateMeshFromPoints is a Stride project that demonstrates how to use a compute shader to generate a mesh from a 3D voxel arrary using maching cube algo.
+GenerateMarchingCube is a Stride project that demonstrates how to use a compute shader to generate a mesh from a 3D voxel arrary using maching cube algo.
 
 
 # Stride ShaderTest - GenerateMeshFromPoints
