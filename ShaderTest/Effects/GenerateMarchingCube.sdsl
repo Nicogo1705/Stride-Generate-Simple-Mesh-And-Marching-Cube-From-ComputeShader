@@ -1,0 +1,135 @@
+// Compute Shader to Generate a Simple Triangle Mesh
+shader GenerateMarchingCube : ComputeShaderBase
+{
+    // Define constants for mesh generation
+    cbuffer param
+    {
+        uint SizeX;
+        uint SizeY;
+        uint SizeZ;
+        float isoLevel;
+    };
+
+    // Define the voxel point Input structure
+    struct VoxelData
+    {
+        float value;
+    };
+
+    // Define the vertex output structure
+    struct Triangle 
+    {
+        float3 vertexA;
+        float3 vertexB;
+        float3 vertexC;
+    };
+
+    static const int cornerIndexAFromEdge[12] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3};
+    static const int cornerIndexBFromEdge[12] = {1, 2, 3, 0, 5, 6, 7, 4, 4, 5, 6, 7};
+
+    // Define a structured buffer INPUPT
+    stage RWStructuredBuffer<int> edges;
+    stage RWStructuredBuffer<int> triangulation;
+    stage RWStructuredBuffer<VoxelData> points;
+
+    // OUTPUT
+    stage RWStructuredBuffer<float3> triangles;
+    stage RWStructuredBuffer<uint> trianglesCount;
+
+    override void Compute()
+    {
+        // Calculate vertex and index offsets based on dispatchThreadID
+        uint3 id = streams.GroupId;
+        if (id.x >= SizeX - 1 || id.y >= SizeY - 1 || id.z >= SizeZ - 1)
+        {
+            return;
+        }
+
+        // 8 corners Position of the current cube
+        uint3 cubePositions[8] = {
+            id + uint3(0,0,0),
+            id + uint3(1,0,0),
+            id + uint3(1,0,1),
+            id + uint3(0,0,1),
+            id + uint3(0,1,0),
+            id + uint3(1,1,0),
+            id + uint3(1,1,1),
+            id + uint3(0,1,1),
+        };
+
+
+        // 8 corners of the current cube
+        VoxelData cubeCorners[8] = {
+            points[indexFromCoord(cubePositions[0])],
+            points[indexFromCoord(cubePositions[1])],
+            points[indexFromCoord(cubePositions[2])],
+            points[indexFromCoord(cubePositions[3])],
+            points[indexFromCoord(cubePositions[4])],
+            points[indexFromCoord(cubePositions[5])],
+            points[indexFromCoord(cubePositions[6])],
+            points[indexFromCoord(cubePositions[7])],
+        };
+
+        int cubeIndex = 0;
+        if (cubeCorners[0].value < isoLevel) cubeIndex |= 1;
+        if (cubeCorners[1].value < isoLevel) cubeIndex |= 2;
+        if (cubeCorners[2].value < isoLevel) cubeIndex |= 4;
+        if (cubeCorners[3].value < isoLevel) cubeIndex |= 8;
+        if (cubeCorners[4].value < isoLevel) cubeIndex |= 16;
+        if (cubeCorners[5].value < isoLevel) cubeIndex |= 32;
+        if (cubeCorners[6].value < isoLevel) cubeIndex |= 64;
+        if (cubeCorners[7].value < isoLevel) cubeIndex |= 128;
+
+        if (cubeIndex == 0 || cubeIndex == 256)
+            return;
+
+        for (int i = 0; i < 15; i +=3) {
+            // Get indices of corner points A and B for each of the three edges
+            // of the cube that need to be joined to form the triangle.
+            if (triangulation[cubeIndex*16 + i] == -1) 
+            {
+                break;
+            }
+
+            int count = trianglesCount[0];
+            trianglesCount[0] += 1;
+
+            int a0 = cornerIndexAFromEdge[triangulation[cubeIndex * 16 + i]];
+            int b0 = cornerIndexBFromEdge[triangulation[cubeIndex * 16 + i]];
+
+            int a1 = cornerIndexAFromEdge[triangulation[cubeIndex * 16 + i+1]];
+            int b1 = cornerIndexBFromEdge[triangulation[cubeIndex * 16 + i+1]];
+
+            int a2 = cornerIndexAFromEdge[triangulation[cubeIndex * 16 + i+2]];
+            int b2 = cornerIndexBFromEdge[triangulation[cubeIndex * 16 + i+2]];
+
+            Triangle tri;
+            tri.vertexA = interpolateVerts(float4(cubePositions[a0], cubeCorners[a0].value), float4(cubePositions[b0], cubeCorners[b0].value));
+            tri.vertexB = interpolateVerts(float4(cubePositions[a1], cubeCorners[a1].value), float4(cubePositions[b1], cubeCorners[b1].value));
+            tri.vertexC = interpolateVerts(float4(cubePositions[a2], cubeCorners[a2].value), float4(cubePositions[b2], cubeCorners[b2].value));
+           
+            if (Same(tri.vertexA, tri.vertexB) | Same(tri.vertexB, tri.vertexC) | Same(tri.vertexC, tri.vertexA))
+                continue;
+
+            triangles[(count * 3) + 0] = tri.vertexA;
+            triangles[(count * 3) + 1] = tri.vertexB;
+            triangles[(count * 3) + 2] = tri.vertexC;
+        }
+    }
+
+    bool Same(float3 a, float3 b)
+    {
+        return a.x == b.x & a.y == b.y & a.z == b.z;
+    }
+
+    float3 interpolateVerts(float4 v1, float4 v2)
+    {
+        float t = (isoLevel - v1.w) / (v2.w - v1.w);
+        return v1.xyz + t * (v2.xyz - v1.xyz);
+    }
+
+    uint indexFromCoord(uint3 p)
+    {
+        return (p.z * SizeX * SizeY) + (p.y * SizeX) + p.x;
+    }
+};

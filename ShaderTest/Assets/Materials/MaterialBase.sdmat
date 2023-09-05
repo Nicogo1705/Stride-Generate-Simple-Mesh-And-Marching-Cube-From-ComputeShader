@@ -3,21 +3,10 @@ Id: d8d560e8-e039-4480-b0d1-f4d89a4888c4
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
-    MicroSurface: !MaterialGlossinessMapFeature
-        GlossinessMap: !ComputeFloat
-            Value: 0.65
     Diffuse: !MaterialDiffuseMapFeature
         DiffuseMap: !ComputeColor
-            Value: {R: 0.76875, G: 0.024023438, B: 0.024023438, A: 1.0}
+            Value: {R: 0.35625, G: 0.17589842, B: 0.17589842, A: 1.0}
     DiffuseModel: !MaterialDiffuseLambertModelFeature {}
-    Specular: !MaterialMetalnessMapFeature
-        MetalnessMap: !ComputeFloat
-            Value: 1.0
-    SpecularModel: !MaterialSpecularMicrofacetModelFeature
-        Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
-        Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
-        NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
-        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
     Overrides:
         UVScale: {X: 1.0, Y: 1.0}
 Layers: {}

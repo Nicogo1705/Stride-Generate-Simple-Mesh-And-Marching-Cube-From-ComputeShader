@@ -9,8 +9,8 @@ Hierarchy:
         - ref!! 504e09ab-6157-414e-8e3a-a18f95c8885e
         - ref!! e6d59ddb-b103-4313-abbb-00f2f9160e68
         - ref!! 133372f6-d5d8-45a8-838f-4b3839a027cd
-        - ref!! f6cceded-8776-40f7-9003-290d6590cfc9
         - ref!! 236886b3-946c-413a-a4ff-51691dfa758e
+        - ref!! a6f40d00-6081-4513-b964-e75dfff8d10e
     Parts:
         -   Entity:
                 Id: 133372f6-d5d8-45a8-838f-4b3839a027cd
@@ -31,21 +31,47 @@ Hierarchy:
                             Skybox: 3cd43992-ea1b-4e0b-8c7f-364c71b0e57f:Skybox
         -   Entity:
                 Id: 236886b3-946c-413a-a4ff-51691dfa758e
-                Name: Sphere
+                Name: Marching
                 Components:
                     78f10c392313bbc7344268ec09a33ecb: !TransformComponent
                         Id: 4a4b5237-df54-4897-b687-3922873ab83b
-                        Position: {X: 0.0, Y: 0.5, Z: 0.0}
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    9873302a7d5aee69d21a8ce6f440faed: !ModelComponent
-                        Id: 3e053dd6-5a6e-40e4-8d69-0b29a9bbf09a
+                    28a23eb06eb35ea1d0e8029b668032a1: !ShaderTest.Effects.GenerateMeshMarchingCube,ShaderTest
+                        Id: 0934ef14-4c4b-4dba-8e07-0562d3f6caaa
+                        ChunkSize: {X: 10.0, Y: 10.0, Z: 10.0}
+                        IsoLevel: 0.0
+        -   Entity:
+                Id: 3812bed6-3447-47df-92c9-138dbe21748a
+                Name: Sphere
+                Components:
+                    3c7324d3d3ab15edb19571488d6e0d31: !TransformComponent
+                        Id: e38b75bf-b9e6-4d38-bf92-6922d387f810
+                        Position: {X: 0.0, Y: 0.0, Z: 8.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4862671c79e04abaa5b146422b205e8c: !ModelComponent
+                        Id: ce83acf1-8844-4467-a3dd-f3001e1d3300
                         Model: 782e75b0-401c-489a-b73e-a57024fb61d1:Models/Sphere
+                        Materials:
+                            5e91c290a14f25dad854b93421d8eed8~0: d8d560e8-e039-4480-b0d1-f4d89a4888c4:Materials/MaterialBase
+        -   Entity:
+                Id: 3d493cf8-6fe4-4223-b4ab-09c53dd736ed
+                Name: Cube
+                Components:
+                    ea1425e09198e1b65c0d2a86438e315d: !TransformComponent
+                        Id: a519b9b1-bc85-42bd-a669-fcced44feceb
+                        Position: {X: 2.0, Y: 0.0, Z: 8.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    fa4f890b7b69070149f8751bcb9a40fb: !ModelComponent
+                        Id: 8360451d-763b-4744-b879-33c9eba95706
+                        Model: 7aae654e-ea24-4899-8f4b-bcd58e8fa564:Models/Cube
                         Materials: {}
-                    b881e4634b2c24a4c1a367c654cb74eb: !ShaderTest.Effects.GenerateMeshFromPointsComponent,ShaderTest
-                        Id: e907b21b-feb3-4472-8fcc-713657821296
-                        marchingRadius: 1.0
         -   Entity:
                 Id: 504e09ab-6157-414e-8e3a-a18f95c8885e
                 Name: Camera
@@ -70,6 +96,58 @@ Hierarchy:
                         KeyboardRotationSpeed: {X: 3.0, Y: 3.0}
                         MouseRotationSpeed: {X: 1.0, Y: 1.0}
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
+                    031b242283ff0e85ab0947c0f2f0a884: !ShaderTest.GameProfiler,ShaderTest
+                        Id: 591641ee-1a31-463d-9838-7dfa8010cf20
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 1000.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
+        -   Entity:
+                Id: 6e8b182b-7e49-4389-9843-fda95ba54914
+                Name: Sphere
+                Components:
+                    3c7324d3d3ab15edb19571488d6e0d31: !TransformComponent
+                        Id: d89da2cb-9e90-48c8-8361-8acd563c461f
+                        Position: {X: 0.0, Y: 0.0, Z: 6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4862671c79e04abaa5b146422b205e8c: !ModelComponent
+                        Id: 7cf14b50-c984-4246-886d-bb26b2411f80
+                        Model: 782e75b0-401c-489a-b73e-a57024fb61d1:Models/Sphere
+                        Materials:
+                            5e91c290a14f25dad854b93421d8eed8~0: 38457519-229e-4df0-bf75-72d84e7f1573:Materials/Sphere Material
+        -   Entity:
+                Id: 9fcd00d6-3326-4f90-a47b-d1cd4744a69d
+                Name: Cube
+                Components:
+                    fd0634888d89f350d1dbfa893d5e6dc7: !TransformComponent
+                        Id: 86b75f6e-763f-4472-b452-001b3956f1dd
+                        Position: {X: 2.0, Y: 0.0, Z: 6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e3d63cf4558c55337349b186013f9f3a: !ModelComponent
+                        Id: ada920e4-3c5a-4ec0-80cd-afbd37c363ef
+                        Model: 7aae654e-ea24-4899-8f4b-bcd58e8fa564:Models/Cube
+                        Materials:
+                            cd64dcb880e5ecebe6ab1ae09e649511~0: 38457519-229e-4df0-bf75-72d84e7f1573:Materials/Sphere Material
+        -   Entity:
+                Id: a6f40d00-6081-4513-b964-e75dfff8d10e
+                Name: Visu
+                Components:
+                    addbb1652d5915a36312247d60ff210d: !TransformComponent
+                        Id: 2ac7164f-1b8f-4143-837e-918afe43f1bd
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            4aac0bcf66f92ed30cf3c5bfa2899d10: ref!! e38b75bf-b9e6-4d38-bf92-6922d387f810
+                            edc16f0f7ba354242d078d7fe149fca0: ref!! d89da2cb-9e90-48c8-8361-8acd563c461f
+                            5bc0d8acd004fd0a60af061a6f7cdf93: ref!! 86b75f6e-763f-4472-b452-001b3956f1dd
+                            665bbf714ccb55a6750c4bbdb5f45f6b: ref!! a519b9b1-bc85-42bd-a669-fcced44feceb
         -   Entity:
                 Id: e6d59ddb-b103-4313-abbb-00f2f9160e68
                 Name: Directional light
@@ -95,17 +173,3 @@ Hierarchy:
                                 ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 20.0
-        -   Entity:
-                Id: f6cceded-8776-40f7-9003-290d6590cfc9
-                Name: Ground
-                Components:
-                    6ff9351b95ddc5ee9b07e2ec31548257: !TransformComponent
-                        Id: 4d77b2e9-2f58-47c1-90af-19a35edce823
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    fe30049bdc98994a4af48009c9496f4b: !ModelComponent
-                        Id: 12034442-28a3-4523-8ee6-bc8770da3af5
-                        Model: 08bd488c-fc92-4ece-ab19-a04c360e7efd:Models/Ground
-                        Materials: {}

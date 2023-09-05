@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="4.1.0.1838" />
+    <PackageReference Include="Stride.Graphics.RenderDocPlugin" Version="4.1.0.1838" />
 
     <PackageReference Include="Stride.Video" Version="4.1.0.1838" />
     <PackageReference Include="Stride.Physics" Version="4.1.0.1838" />
@@ -17,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Effects\GenerateMarchingCube.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Effects\GenerateMesh.sdsl.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -25,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Effects\GenerateMarchingCube.sdsl">
+      <LastGenOutput>GenerateMarchingCube.sdsl.cs</LastGenOutput>
+    </None>
     <None Update="Effects\GenerateMesh.sdsl">
       <LastGenOutput>GenerateMesh.sdsl.cs</LastGenOutput>
     </None>

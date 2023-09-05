@@ -1,4 +1,5 @@
 using Stride.Engine;
+using Stride.Graphics;
 
 namespace ShaderTest
 {
@@ -8,6 +9,7 @@ namespace ShaderTest
         {
             using (var game = new Game())
             {
+                game.GraphicsDeviceManager.DeviceCreationFlags |= DeviceCreationFlags.Debug;
                 game.Run();
             }
         }
