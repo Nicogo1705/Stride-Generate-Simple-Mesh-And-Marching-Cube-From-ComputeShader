@@ -27,17 +27,6 @@ namespace ShaderTest.Effects
             public float value;
         };
 
-        struct Triangle
-        {
-            public Vector3 vertexA;
-            public Vector3 vertexB;
-            public Vector3 vertexC;
-
-            public override string ToString()
-            {
-                return vertexA.ToString();
-            }
-        }
         private VoxelData[] VoxelPoints = new VoxelData[0];
         private Buffer<int> edges; //Const buffer
         private Buffer<int> triangulation; //Const buffer
@@ -184,18 +173,11 @@ namespace ShaderTest.Effects
             {
                 return;
             }
-                //SetUpRender();
-                //SetUpVoxelPoints();
-                //SetUpBuffers();
+            //Buffer counter reset ? 
                 if (trianglesCount != null)
                     trianglesCount.Dispose();
                 trianglesCount = Buffer.New<uint>(GraphicsDevice, 1, BufferFlags.StructuredAppendBuffer);
                 ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.trianglesCount, trianglesCount);
-
-            //SetUpParameters();
-            //DefineStaticsValues();
-            //DefineDynamicsValues();
-            //SetUpMeshAndEntity();
 
             DefineDynamicsValues();
 
@@ -203,6 +185,7 @@ namespace ShaderTest.Effects
             ComputeShader.Draw(renderDrawContext); //Compute shader
             UnsetUAV(Game.GraphicsContext.CommandList, ComputeShader.Parameters, GenerateMarchingCubeKeys.triangles); //Unbind !!!!! it will free the acces to the buffer for the render.
 
+            //Debug : Read data from each buffer
             //var a = edges.GetData(Game.GraphicsContext.CommandList);
             //var b = triangulation.GetData(Game.GraphicsContext.CommandList);
             //var c = points.GetData(Game.GraphicsContext.CommandList);
@@ -240,7 +223,5 @@ namespace ShaderTest.Effects
         }
 
         #endregion
-
     }
-
 }

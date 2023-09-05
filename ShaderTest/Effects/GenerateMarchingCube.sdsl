@@ -101,7 +101,6 @@ shader GenerateMarchingCube : ComputeShaderBase
                 break;
             }
 
-            int count = trianglesCount.IncrementCounter();
 
             int a0 = cornerIndexAFromEdge[triangulation[cubeIndex * 16 + i]];
             int b0 = cornerIndexBFromEdge[triangulation[cubeIndex * 16 + i]];
@@ -138,6 +137,7 @@ shader GenerateMarchingCube : ComputeShaderBase
             c.Normal = normal;
             c.TextureCoordinate = float2(1,0);
 
+            int count = trianglesCount.IncrementCounter();
             triangles[(count * 3) + 0] = a;
             triangles[(count * 3) + 1] = b;
             triangles[(count * 3) + 2] = c;
