@@ -41,7 +41,7 @@ Hierarchy:
                         Children: {}
                     28a23eb06eb35ea1d0e8029b668032a1: !ShaderTest.Effects.GenerateMeshMarchingCube,ShaderTest
                         Id: 0934ef14-4c4b-4dba-8e07-0562d3f6caaa
-                        ChunkSize: {X: 32.0, Y: 32.0, Z: 32.0}
+                        ChunkSize: {X: 128.0, Y: 128.0, Z: 128.0}
                         IsoLevel: 0.0
         -   Entity:
                 Id: 3812bed6-3447-47df-92c9-138dbe21748a

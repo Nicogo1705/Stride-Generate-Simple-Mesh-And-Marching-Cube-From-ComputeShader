@@ -21,7 +21,7 @@ namespace ShaderTest.Effects
     {
         public Vector3 ChunkSize = new Vector3(4, 4, 4);
         public float IsoLevel = 0;
-        public int MaxVectrices => (int)ChunkSize.X * (int)ChunkSize.Y * (int)ChunkSize.Z * 3;
+        public int MaxVectrices => (int)ChunkSize.X * (int)ChunkSize.Y * (int)ChunkSize.Z * 5;
         public struct VoxelData
         {
             public float value;
@@ -69,7 +69,11 @@ namespace ShaderTest.Effects
                             VoxelPoints[index].value = -1;
                         else if (z == 0 || z == ChunkSize.Z - 1)
                             VoxelPoints[index].value = -1;
-                        else if (x > 5 && x < 10)
+                        else if (x % 3 == 1)
+                            VoxelPoints[index].value = -1;
+                        else if (y % 3 == 1)
+                            VoxelPoints[index].value = -1;
+                        else if (z % 3 == 1)
                             VoxelPoints[index].value = -1;
                         else
                             VoxelPoints[index].value = 1;
@@ -133,7 +137,7 @@ namespace ShaderTest.Effects
                 SceneSystem.SceneInstance.RootScene.Entities.Remove(entity);
                 entity.Dispose();
             }
-           
+
             //generate the mesh and link it to the vertex & index buffers.
             var mesh = new Mesh
             {
@@ -174,11 +178,12 @@ namespace ShaderTest.Effects
                 return;
             }
             //Buffer counter reset ? 
-                if (trianglesCount != null)
-                    trianglesCount.Dispose();
-                trianglesCount = Buffer.New<uint>(GraphicsDevice, 1, BufferFlags.StructuredAppendBuffer);
-                ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.trianglesCount, trianglesCount);
+            //if (trianglesCount != null)
+            //    trianglesCount.Dispose();
+            //trianglesCount = Buffer.New<uint>(GraphicsDevice, 1, BufferFlags.StructuredAppendBuffer);
+            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.trianglesCount, trianglesCount);
 
+            trianglesCount.InitialCounterOffset = 0;
             DefineDynamicsValues();
 
             ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.triangles, triangles);
