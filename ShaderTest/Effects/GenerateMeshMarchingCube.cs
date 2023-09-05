@@ -114,7 +114,7 @@ namespace ShaderTest.Effects
         private void DefineDynamicsValues()
         {
             points.SetData(Game.GraphicsContext.CommandList, VoxelPoints);
-            trianglesCount.SetData(Game.GraphicsContext.CommandList, new uint[] { 0 });
+            //trianglesCount.SetData(Game.GraphicsContext.CommandList, new uint[] { 0 });
 
             ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeX, (uint)ChunkSize.X);
             ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeY, (uint)ChunkSize.Y);
@@ -164,12 +164,11 @@ namespace ShaderTest.Effects
             DefineDynamicsValues();
 
             ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.triangles, triangles);
+
             ComputeShader.Draw(renderDrawContext); //Compute shader
 
-            var tr = triangles.GetData(Game.GraphicsContext.CommandList);
-            var tr2 = trianglesCount.GetData(Game.GraphicsContext.CommandList);
-            //if (Input.IsKeyDown(Stride.Input.Keys.LeftShift))
-                System.Console.WriteLine(tr2[0]);
+            if (Input.IsKeyDown(Stride.Input.Keys.LeftCtrl))
+                System.Console.WriteLine("");
 
             UnsetUAV(Game.GraphicsContext.CommandList, ComputeShader.Parameters, GenerateMarchingCubeKeys.triangles); //Unbind !!!!! it will free the acces to the buffer for the render.
         }

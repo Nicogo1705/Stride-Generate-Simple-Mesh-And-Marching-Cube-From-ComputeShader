@@ -8,6 +8,7 @@ shader GenerateMarchingCube : ComputeShaderBase
         uint SizeY;
         uint SizeZ;
         float isoLevel;
+        int maxTriangles;
     };
 
     // Define the voxel point Input structure

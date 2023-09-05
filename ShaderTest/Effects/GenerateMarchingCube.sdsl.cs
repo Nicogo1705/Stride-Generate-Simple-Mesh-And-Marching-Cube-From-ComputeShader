@@ -22,6 +22,7 @@ namespace Stride.Rendering
         public static readonly ValueParameterKey<uint> SizeY = ParameterKeys.NewValue<uint>();
         public static readonly ValueParameterKey<uint> SizeZ = ParameterKeys.NewValue<uint>();
         public static readonly ValueParameterKey<float> isoLevel = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<int> maxTriangles = ParameterKeys.NewValue<int>();
         public static readonly ObjectParameterKey<Buffer> edges = ParameterKeys.NewObject<Buffer>();
         public static readonly ObjectParameterKey<Buffer> triangulation = ParameterKeys.NewObject<Buffer>();
         public static readonly ObjectParameterKey<Buffer> points = ParameterKeys.NewObject<Buffer>();
