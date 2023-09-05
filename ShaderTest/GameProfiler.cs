@@ -51,6 +51,8 @@ namespace ShaderTest
             if (Enabled)
                 GameProfiler.EnableProfiling();
 
+            ((Stride.Games.GameBase)Game).WindowMinimumUpdateRate.MinimumElapsedTime = TimeSpan.FromSeconds(1f /100);
+
             while (Game.IsRunning)
             {
                 GameProfiler.TextColor = TextColor;

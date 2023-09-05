@@ -8,7 +8,7 @@ shader GenerateMarchingCube : ComputeShaderBase
         uint SizeY;
         uint SizeZ;
         float isoLevel;
-        int maxTriangles;
+        int maxVectrices;
     };
 
     // Define the voxel point Input structure
@@ -18,11 +18,11 @@ shader GenerateMarchingCube : ComputeShaderBase
     };
 
     // Define the vertex output structure
-    struct Triangle 
+    struct VertexOutput
     {
-        float3 vertexA;
-        float3 vertexB;
-        float3 vertexC;
+        float3 Position : POSITION;
+        float3 Normal : NORMAL;
+        float2 TextureCoordinate : TEXCOORD0;
     };
 
     static const int cornerIndexAFromEdge[12] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3};
@@ -34,13 +34,22 @@ shader GenerateMarchingCube : ComputeShaderBase
     stage RWStructuredBuffer<VoxelData> points;
 
     // OUTPUT
-    stage RWStructuredBuffer<float3> triangles;
+    stage RWStructuredBuffer<VertexOutput> triangles;
     stage RWStructuredBuffer<uint> trianglesCount;
 
     override void Compute()
     {
-        // Calculate vertex and index offsets based on dispatchThreadID
         uint3 id = streams.GroupId;
+
+        //if (id.x == 0 & id.y == 0 & id.z ==0)
+        //{
+        //    for (int i = 0 ; i < maxVectrices; i++)
+        //    {
+        //        triangles[i] = float3(0,0,0);
+        //    }
+        //}
+
+        // Calculate vertex and index offsets based on dispatchThreadID
         if (id.x >= SizeX - 1 || id.y >= SizeY - 1 || id.z >= SizeZ - 1)
         {
             return;
@@ -103,17 +112,35 @@ shader GenerateMarchingCube : ComputeShaderBase
             int a2 = cornerIndexAFromEdge[triangulation[cubeIndex * 16 + i+2]];
             int b2 = cornerIndexBFromEdge[triangulation[cubeIndex * 16 + i+2]];
 
-            Triangle tri;
-            tri.vertexA = interpolateVerts(float4(cubePositions[a0], cubeCorners[a0].value), float4(cubePositions[b0], cubeCorners[b0].value));
-            tri.vertexB = interpolateVerts(float4(cubePositions[a1], cubeCorners[a1].value), float4(cubePositions[b1], cubeCorners[b1].value));
-            tri.vertexC = interpolateVerts(float4(cubePositions[a2], cubeCorners[a2].value), float4(cubePositions[b2], cubeCorners[b2].value));
+            
+            float3 vertexA = interpolateVerts(float4(cubePositions[a0], cubeCorners[a0].value), float4(cubePositions[b0], cubeCorners[b0].value));
+            float3 vertexB = interpolateVerts(float4(cubePositions[a1], cubeCorners[a1].value), float4(cubePositions[b1], cubeCorners[b1].value));
+            float3 vertexC = interpolateVerts(float4(cubePositions[a2], cubeCorners[a2].value), float4(cubePositions[b2], cubeCorners[b2].value));
            
-            if (Same(tri.vertexA, tri.vertexB) | Same(tri.vertexB, tri.vertexC) | Same(tri.vertexC, tri.vertexA))
+            if (Same(vertexA, vertexB) | Same(vertexB, vertexC) | Same(vertexC, vertexA))
                 continue;
 
-            triangles[(count * 3) + 0] = tri.vertexA;
-            triangles[(count * 3) + 1] = tri.vertexB;
-            triangles[(count * 3) + 2] = tri.vertexC;
+            float3 normal = cross(vertexA - vertexB, vertexC - vertexB);
+
+            VertexOutput a;
+            VertexOutput b;
+            VertexOutput c;
+
+            a.Position = vertexA;
+            a.Normal = normal;
+            a.TextureCoordinate = float2(0,0);
+
+            b.Position = vertexB;
+            b.Normal = normal;
+            b.TextureCoordinate = float2(0,1);
+
+            c.Position = vertexC;
+            c.Normal = normal;
+            c.TextureCoordinate = float2(1,0);
+
+            triangles[(count * 3) + 0] = a;
+            triangles[(count * 3) + 1] = b;
+            triangles[(count * 3) + 2] = c;
         }
     }
 

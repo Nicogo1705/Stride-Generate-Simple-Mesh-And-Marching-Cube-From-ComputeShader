@@ -71,7 +71,8 @@ Hierarchy:
                     fa4f890b7b69070149f8751bcb9a40fb: !ModelComponent
                         Id: 8360451d-763b-4744-b879-33c9eba95706
                         Model: 7aae654e-ea24-4899-8f4b-bcd58e8fa564:Models/Cube
-                        Materials: {}
+                        Materials:
+                            d5bd489a7364304bacdd8ea9dd2225c0~0: d8d560e8-e039-4480-b0d1-f4d89a4888c4:Materials/MaterialBase
         -   Entity:
                 Id: 504e09ab-6157-414e-8e3a-a18f95c8885e
                 Name: Camera
@@ -133,7 +134,7 @@ Hierarchy:
                         Id: ada920e4-3c5a-4ec0-80cd-afbd37c363ef
                         Model: 7aae654e-ea24-4899-8f4b-bcd58e8fa564:Models/Cube
                         Materials:
-                            cd64dcb880e5ecebe6ab1ae09e649511~0: 38457519-229e-4df0-bf75-72d84e7f1573:Materials/Sphere Material
+                            bbebc8def51c2fc9212c0ba67bec5c6f~0: 38457519-229e-4df0-bf75-72d84e7f1573:Materials/Sphere Material
         -   Entity:
                 Id: a6f40d00-6081-4513-b964-e75dfff8d10e
                 Name: Visu
