@@ -4,7 +4,6 @@ shader GenerateMesh : ComputeShaderBase
     // Define constants for mesh generation
     cbuffer param
     {
-        float MarchingRadius; 
         uint PointCount; 
     };
 
@@ -12,7 +11,6 @@ shader GenerateMesh : ComputeShaderBase
     struct VoxelPoint
     {
         float3 Position;
-        uint MeshID;
     };
     // Define the vertex output structure
     struct VertexOutput

@@ -41,14 +41,6 @@ shader GenerateMarchingCube : ComputeShaderBase
     {
         uint3 id = streams.GroupId;
 
-        //if (id.x == 0 & id.y == 0 & id.z ==0)
-        //{
-        //    for (int i = 0 ; i < maxVectrices; i++)
-        //    {
-        //        triangles[i] = float3(0,0,0);
-        //    }
-        //}
-
         // Calculate vertex and index offsets based on dispatchThreadID
         if (id.x >= SizeX - 1 || id.y >= SizeY - 1 || id.z >= SizeZ - 1)
         {
@@ -137,6 +129,8 @@ shader GenerateMarchingCube : ComputeShaderBase
             c.Normal = normal;
             c.TextureCoordinate = float2(1,0);
 
+
+            //Fill vertexBuffer
             int count = trianglesCount.IncrementCounter();
             triangles[(count * 3) + 0] = a;
             triangles[(count * 3) + 1] = b;

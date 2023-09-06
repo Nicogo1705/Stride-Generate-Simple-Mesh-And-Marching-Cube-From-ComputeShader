@@ -18,12 +18,11 @@ namespace ShaderTest.Effects
         public struct VoxelPoint //input data to give to the shader
         {
             public Vector3 Position;
-            public uint MeshID;
         };
 
         private VoxelPoint[] VoxelPoints = new[] { //Default data
-                new VoxelPoint() { Position = new Vector3(0, 0, 0), MeshID = 0 },
-                new VoxelPoint() { Position = new Vector3(2, 0, 0), MeshID = 1 }
+                new VoxelPoint() { Position = new Vector3(0, 0, 0) },
+                new VoxelPoint() { Position = new Vector3(2, 0, 0) }
         };
 
         public float marchingRadius = 1f; //field to set to the shader.
@@ -95,7 +94,6 @@ namespace ShaderTest.Effects
                 VoxelPoints[0].Position -= new Vector3(0.1f, 0, 0);
             }
             voxelPointBuffer.SetData(Game.GraphicsContext.CommandList, VoxelPoints); //update dataPoints[]
-            ComputeShader.Parameters.Set(GenerateMeshKeys.MarchingRadius, marchingRadius); //reset a simple field
             ComputeShader.Parameters.Set(GenerateMeshKeys.PointCount, (uint)VoxelPoints.Length); //set field
             ComputeShader.Parameters.Set(GenerateMeshKeys.VertexBuffer, vertexBuffer); //rebind vertextBuffer
             ComputeShader.Parameters.Set(GenerateMeshKeys.IndexBuffer, indexBuffer); //.. IndexBuff

@@ -19,29 +19,38 @@ namespace ShaderTest.Effects
     //https://github.com/SebLague/Marching-Cubes/tree/master
     public class GenerateMeshMarchingCube : SyncScript
     {
+        //INTEGER VALUE !!!
         public Vector3 ChunkSize = new Vector3(4, 4, 4);
+        //Value indicating where the surface should be.
         public float IsoLevel = 0;
-        public int MaxVectrices => (int)ChunkSize.X * (int)ChunkSize.Y * (int)ChunkSize.Z * 5;
+        //it work with theses values, it should be the MAX NUMBER of point for this chunk. you can do the math if you want to optimise a little.
+        public int MaxVectrices => 100 + ((int)ChunkSize.X * (int)ChunkSize.Y * (int)ChunkSize.Z * 5);
+        //Input data given to the comppute shader
         public struct VoxelData
         {
             public float value;
         };
 
+        //instance of the input data (CPU SIDE)
         private VoxelData[] VoxelPoints = new VoxelData[0];
-        private Buffer<int> edges; //Const buffer
-        private Buffer<int> triangulation; //Const buffer
-        private Buffer<VoxelData> points; //input buffer
 
-        private Buffer<VertexPositionNormalTexture> triangles; //output buffer
-        private Buffer<uint> trianglesCount; //output buffer
+        private Buffer<int> edges; //Const buffer for marching cube in GPU.
+        private Buffer<int> triangulation; //Const buffer for marching cube in GPU.
+        
+        private Buffer<VoxelData> points; //input buffer (GPU SIDE)
+
+        private Buffer<VertexPositionNormalTexture> triangles; //output buffer (vertex in GPU)
+        private Buffer<uint> trianglesCount; //Counter buffer (so the vertext are ordered)
 
 
         //See stride doc (needed for compute shader)
         private RenderContext drawEffectContext;
         private ComputeEffectShader ComputeShader;
-        private Entity entity;
         private Model model;
         private RenderDrawContext renderDrawContext;
+
+        //Need redraw the mesh ? (if VoxelData[] VoxelPoints is edited => yes)
+        private bool _upToDate = false;
 
         private void SetUpRender()
         {
@@ -69,12 +78,12 @@ namespace ShaderTest.Effects
                             VoxelPoints[index].value = -1;
                         else if (z == 0 || z == ChunkSize.Z - 1)
                             VoxelPoints[index].value = -1;
-                        else if (x % 3 == 1)
-                            VoxelPoints[index].value = -1;
-                        else if (y % 3 == 1)
-                            VoxelPoints[index].value = -1;
-                        else if (z % 3 == 1)
-                            VoxelPoints[index].value = -1;
+                        //else if (x % 3 == 1)
+                        //    VoxelPoints[index].value = -1;
+                        //else if (y % 3 == 1)
+                        //    VoxelPoints[index].value = -1;
+                        //else if (z % 3 == 1)
+                        //    VoxelPoints[index].value = -1;
                         else
                             VoxelPoints[index].value = 1;
                     }
@@ -121,23 +130,21 @@ namespace ShaderTest.Effects
         }
         private void DefineDynamicsValues()
         {
-            points.SetData(Game.GraphicsContext.CommandList, VoxelPoints);
-            trianglesCount.SetData(Game.GraphicsContext.CommandList, new uint[] { 0 });
+            //Reset counter to 0.
+            trianglesCount.InitialCounterOffset = 0;
 
-            ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeX, (uint)ChunkSize.X);
-            ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeY, (uint)ChunkSize.Y);
-            ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeZ, (uint)ChunkSize.Z);
-            ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.isoLevel, IsoLevel);
-            ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.maxVectrices, MaxVectrices);
+            //update GPU voxel input data.
+            points.SetData(Game.GraphicsContext.CommandList, VoxelPoints);
+
+            //if you want to be able to change chunk time at runtime : (warning : you should also edit the mesh VertexBufferBinding and DrawCount)
+            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeX, (uint)ChunkSize.X);
+            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeY, (uint)ChunkSize.Y);
+            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.SizeZ, (uint)ChunkSize.Z);
+            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.isoLevel, IsoLevel);
+            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.maxVectrices, MaxVectrices);
         }
         private void SetUpMeshAndEntity()
         {
-            if (entity != null)
-            {
-                SceneSystem.SceneInstance.RootScene.Entities.Remove(entity);
-                entity.Dispose();
-            }
-
             //generate the mesh and link it to the vertex & index buffers.
             var mesh = new Mesh
             {
@@ -151,13 +158,10 @@ namespace ShaderTest.Effects
             };
 
             // Create an entity and add the mesh to it
-            entity = new Entity();
             model = new Model { Meshes = { mesh } };
             model.Materials.Add(Content.Load<Material>("Materials/MaterialBase")); //loading a material
-            entity.GetOrCreate<ModelComponent>().Model = model;
-            entity.Get<ModelComponent>().IsShadowCaster = true;
-
-            SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+            Entity.GetOrCreate<ModelComponent>().Model = model;
+            Entity.Get<ModelComponent>().IsShadowCaster = true;
         }
 
         public override void Start()
@@ -173,29 +177,25 @@ namespace ShaderTest.Effects
         }
         public override void Update()
         {
-            if (Input.IsKeyDown(Stride.Input.Keys.Space))
-            {
+            if (_upToDate)
                 return;
-            }
-            //Buffer counter reset ? 
-            //if (trianglesCount != null)
-            //    trianglesCount.Dispose();
-            //trianglesCount = Buffer.New<uint>(GraphicsDevice, 1, BufferFlags.StructuredAppendBuffer);
-            //ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.trianglesCount, trianglesCount);
 
-            trianglesCount.InitialCounterOffset = 0;
             DefineDynamicsValues();
 
+            //Bind vertex shader
             ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.triangles, triangles);
             ComputeShader.Draw(renderDrawContext); //Compute shader
-            UnsetUAV(Game.GraphicsContext.CommandList, ComputeShader.Parameters, GenerateMarchingCubeKeys.triangles); //Unbind !!!!! it will free the acces to the buffer for the render.
+            UnsetUAV(Game.GraphicsContext.CommandList, ComputeShader.Parameters, GenerateMarchingCubeKeys.triangles); 
+            //Unbind !!!!! it will free the acces to the buffer for the render.
 
-            //Debug : Read data from each buffer
+            _upToDate = true;
+            
+            //Debug : Read data from each buffer in GPU (may be slow if you transfer a lot of data from/to GPU)
             //var a = edges.GetData(Game.GraphicsContext.CommandList);
             //var b = triangulation.GetData(Game.GraphicsContext.CommandList);
             //var c = points.GetData(Game.GraphicsContext.CommandList);
             //var d = triangles.GetData(Game.GraphicsContext.CommandList);
-            //var e = trianglesCount.GetData(Game.GraphicsContext.CommandList);
+            //var e = trianglesCount.GetData(Game.GraphicsContext.CommandList); //Counter always return "0" but has an incremented value since we have to reset it. Don't ask me why.
         }
 
         #region hack tebjan (Thansks a lot!)

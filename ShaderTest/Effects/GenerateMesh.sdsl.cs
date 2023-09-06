@@ -18,7 +18,6 @@ namespace Stride.Rendering
 {
     public static partial class GenerateMeshKeys
     {
-        public static readonly ValueParameterKey<float> MarchingRadius = ParameterKeys.NewValue<float>();
         public static readonly ValueParameterKey<uint> PointCount = ParameterKeys.NewValue<uint>();
         public static readonly ObjectParameterKey<Buffer> VoxelPointBuffer = ParameterKeys.NewObject<Buffer>();
         public static readonly ObjectParameterKey<Buffer> VertexBuffer = ParameterKeys.NewObject<Buffer>();

@@ -9,8 +9,8 @@ Hierarchy:
         - ref!! 504e09ab-6157-414e-8e3a-a18f95c8885e
         - ref!! e6d59ddb-b103-4313-abbb-00f2f9160e68
         - ref!! 133372f6-d5d8-45a8-838f-4b3839a027cd
-        - ref!! 236886b3-946c-413a-a4ff-51691dfa758e
         - ref!! a6f40d00-6081-4513-b964-e75dfff8d10e
+        - ref!! 236886b3-946c-413a-a4ff-51691dfa758e
     Parts:
         -   Entity:
                 Id: 133372f6-d5d8-45a8-838f-4b3839a027cd
@@ -39,10 +39,10 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    28a23eb06eb35ea1d0e8029b668032a1: !ShaderTest.Effects.GenerateMeshMarchingCube,ShaderTest
-                        Id: 0934ef14-4c4b-4dba-8e07-0562d3f6caaa
-                        ChunkSize: {X: 128.0, Y: 128.0, Z: 128.0}
-                        IsoLevel: 0.0
+                    48e3f4c9a6d305358f6a628fc5602db7: !ShaderTest.Effects.ChunkContainer,ShaderTest
+                        Id: de394f7b-8857-4120-8370-8d5a991f6310
+                        WorldSize: {X: 5.0, Y: 5.0, Z: 5.0}
+                        ChunkSize: {X: 32.0, Y: 32.0, Z: 32.0}
         -   Entity:
                 Id: 3812bed6-3447-47df-92c9-138dbe21748a
                 Name: Sphere
