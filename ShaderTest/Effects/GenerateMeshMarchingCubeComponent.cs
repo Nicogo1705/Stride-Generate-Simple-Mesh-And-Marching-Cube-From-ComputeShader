@@ -69,12 +69,12 @@ namespace ShaderTest.Effects
                             VoxelPoints[index].value = -1;
                         else if (z == 0 || z == ChunkSize.Z - 1)
                             VoxelPoints[index].value = -1;
-                        //else if (x % 3 == 1)
-                        //    VoxelPoints[index].value = -1;
-                        //else if (y % 3 == 1)
-                        //    VoxelPoints[index].value = -1;
-                        //else if (z % 3 == 1)
-                        //    VoxelPoints[index].value = -1;
+                        else if (x % 3 == 1)
+                            VoxelPoints[index].value = -1;
+                        else if (y % 3 == 1)
+                            VoxelPoints[index].value = -1;
+                        else if (z % 3 == 1)
+                            VoxelPoints[index].value = -1;
                         else
                             VoxelPoints[index].value = 1;
                     }

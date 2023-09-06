@@ -21,8 +21,6 @@ namespace ShaderTest.Effects
                 new VoxelPoint() { Position = new Vector3(2, 0, 0) }
         };
 
-        public float marchingRadius = 1f; //field to set to the shader.
-
         private Buffer<VoxelPoint> voxelPointBuffer; //input buffer
         private Buffer<VertexPositionNormalTexture> vertexBuffer; //output vertexBuffer
         private Buffer<uint> indexBuffer; //output index Buffer

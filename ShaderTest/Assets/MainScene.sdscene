@@ -11,6 +11,7 @@ Hierarchy:
         - ref!! 133372f6-d5d8-45a8-838f-4b3839a027cd
         - ref!! a6f40d00-6081-4513-b964-e75dfff8d10e
         - ref!! 236886b3-946c-413a-a4ff-51691dfa758e
+        - ref!! 42c8cf02-d978-44f0-b5d8-c553f7f6539f
     Parts:
         -   Entity:
                 Id: 133372f6-d5d8-45a8-838f-4b3839a027cd
@@ -39,10 +40,10 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    48e3f4c9a6d305358f6a628fc5602db7: !ShaderTest.Effects.ChunkContainer,ShaderTest
-                        Id: de394f7b-8857-4120-8370-8d5a991f6310
+                    856d8d56a92b42d30fd41ec323864f32: !ShaderTest.Effects.ChunkContainer,ShaderTest
+                        Id: 53899424-89bd-4736-8c35-9dddbeff9692
                         WorldSize: {X: 5.0, Y: 5.0, Z: 5.0}
-                        ChunkSize: {X: 32.0, Y: 32.0, Z: 32.0}
+                        ChunkSize: {X: 48.0, Y: 48.0, Z: 48.0}
         -   Entity:
                 Id: 3812bed6-3447-47df-92c9-138dbe21748a
                 Name: Sphere
@@ -73,6 +74,19 @@ Hierarchy:
                         Model: 7aae654e-ea24-4899-8f4b-bcd58e8fa564:Models/Cube
                         Materials:
                             d5bd489a7364304bacdd8ea9dd2225c0~0: d8d560e8-e039-4480-b0d1-f4d89a4888c4:Materials/MaterialBase
+        -   Entity:
+                Id: 42c8cf02-d978-44f0-b5d8-c553f7f6539f
+                Name: Mesh
+                Components:
+                    39424f0c24585a5153ed08b35728eb08: !TransformComponent
+                        Id: a88e671c-b235-4eec-bec0-59e16b699448
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0227dcb7c5d3bdf5baacf49ec3e62d7f: !ShaderTest.Effects.GenerateMeshFromPointsComponent,ShaderTest
+                        Id: 689adee0-1b90-4a8f-ac3c-e55c234a3ede
+                        marchingRadius: 1.0
         -   Entity:
                 Id: 504e09ab-6157-414e-8e3a-a18f95c8885e
                 Name: Camera
