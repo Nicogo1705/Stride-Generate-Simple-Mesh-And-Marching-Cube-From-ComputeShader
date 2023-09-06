@@ -1,14 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using Stride.Core;
-using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
+﻿using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Games;
-using Stride.Graphics;
-using Stride.Rendering;
-using Stride.Rendering.ComputeEffect;
 
 namespace ShaderTest.Effects
 {
@@ -33,7 +24,7 @@ namespace ShaderTest.Effects
                         var e = new Entity();
                         Entity.AddChild(e);
                         e.Transform.Position = new Vector3(x * ChunkSize.X, y * ChunkSize.Y, z * ChunkSize.Z);
-                        e.GetOrCreate<GenerateMeshMarchingCube>().ChunkSize = ChunkSize;
+                        e.GetOrCreate<GenerateMeshMarchingCubeComponent>().ChunkSize = ChunkSize;
                     }
                 }
             }

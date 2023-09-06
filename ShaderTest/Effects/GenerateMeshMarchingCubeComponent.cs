@@ -1,23 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Windows.Documents;
-using System.Windows.Forms.VisualStyles;
-using BulletSharp;
-using Stride.Core;
-using Stride.Core.Extensions;
+﻿using System.Reflection;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.ComputeEffect;
-using Valve.VR;
 
 namespace ShaderTest.Effects
 {
     //https://github.com/SebLague/Marching-Cubes/tree/master
-    public class GenerateMeshMarchingCube : SyncScript
+    public class GenerateMeshMarchingCubeComponent : SyncScript
     {
         //INTEGER VALUE !!!
         public Vector3 ChunkSize = new Vector3(4, 4, 4);
@@ -36,7 +27,7 @@ namespace ShaderTest.Effects
 
         private Buffer<int> edges; //Const buffer for marching cube in GPU.
         private Buffer<int> triangulation; //Const buffer for marching cube in GPU.
-        
+
         private Buffer<VoxelData> points; //input buffer (GPU SIDE)
 
         private Buffer<VertexPositionNormalTexture> triangles; //output buffer (vertex in GPU)
@@ -185,11 +176,11 @@ namespace ShaderTest.Effects
             //Bind vertex shader
             ComputeShader.Parameters.Set(GenerateMarchingCubeKeys.triangles, triangles);
             ComputeShader.Draw(renderDrawContext); //Compute shader
-            UnsetUAV(Game.GraphicsContext.CommandList, ComputeShader.Parameters, GenerateMarchingCubeKeys.triangles); 
+            UnsetUAV(Game.GraphicsContext.CommandList, ComputeShader.Parameters, GenerateMarchingCubeKeys.triangles);
             //Unbind !!!!! it will free the acces to the buffer for the render.
 
             _upToDate = true;
-            
+
             //Debug : Read data from each buffer in GPU (may be slow if you transfer a lot of data from/to GPU)
             //var a = edges.GetData(Game.GraphicsContext.CommandList);
             //var b = triangulation.GetData(Game.GraphicsContext.CommandList);
