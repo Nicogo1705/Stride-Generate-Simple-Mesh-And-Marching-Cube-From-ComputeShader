@@ -4,6 +4,14 @@
 
 This project aims to provide a practical implementation of generating simple 3D meshes and applying the Marching Cubes algorithm using a Compute Shader in Stride (formerly known as Xenko). It offers a foundation for creating complex voxel-based terrain, medical imaging, or other applications where surface reconstruction from volumetric data is required.
 
+GeneateMesh :
+![image](https://github.com/Nicogo1705/Stride-Generate-Simple-Mesh-And-Marching-Cube-From-ComputeShader/assets/20603105/df8b1373-c3ad-42b2-b9b2-a105805d3abb)
+
+GenerateMarchingCube
+![image](https://github.com/Nicogo1705/Stride-Generate-Simple-Mesh-And-Marching-Cube-From-ComputeShader/assets/20603105/d5e4067f-8140-40fd-9547-0ffb75137d9b)
+![image](https://github.com/Nicogo1705/Stride-Generate-Simple-Mesh-And-Marching-Cube-From-ComputeShader/assets/20603105/70a16eeb-14a4-49bc-a3cc-758791a9ff89)
+
+
 **Context of Use**
 
 The project finds relevance in various contexts, including but not limited to:
