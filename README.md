@@ -5,8 +5,6 @@ with a Marching Cubes compute shader. Fill chunks with one of three built-in noi
 generators, mesh them with smooth gradient normals, and shade the surface with a
 per-triangle **multi-material** colour blend — no textures required.
 
-![screenshot](thumbnail.png)
-
 ## What's in the box
 
 | File | Role |
