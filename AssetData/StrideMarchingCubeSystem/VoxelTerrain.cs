@@ -55,13 +55,13 @@ public sealed class VoxelTerrain : SyncScript
 
     private bool _initialized;
     private Material? _material;
-    private Texture? _paletteTexture;
+    private Texture? _terrainTexture;
     private MarchingCubesMesher? _mesher;
     private ITerrainGenerator? _generator;
     private Queue<Int3>? _pending;
 
-    private static readonly ObjectParameterKey<Texture?> KeyPaletteTex =
-        ParameterKeys.NewObject<Texture?>(null, "TerrainDiffuse.PaletteTex");
+    private static readonly ObjectParameterKey<Texture?> KeyTerrainTextures =
+        ParameterKeys.NewObject<Texture?>(null, "TerrainDiffuse.TerrainTextures");
 
     public override void Update()
     {
@@ -82,7 +82,7 @@ public sealed class VoxelTerrain : SyncScript
 
     private void Initialize()
     {
-        _paletteTexture = TerrainPalette.BuildTexture(GraphicsDevice, TerrainPalette.Default());
+        _terrainTexture = TerrainTextures.BuildArray(GraphicsDevice, Seed);
 
         var diffuse = new ComputeShaderClassColor { MixinReference = "TerrainDiffuse" };
         _material = Material.New(GraphicsDevice, new MaterialDescriptor
@@ -93,7 +93,7 @@ public sealed class VoxelTerrain : SyncScript
                 DiffuseModel = new MaterialDiffuseLambertModelFeature(),
             }
         });
-        _material.Passes[0].Parameters.Set(KeyPaletteTex, _paletteTexture);
+        _material.Passes[0].Parameters.Set(KeyTerrainTextures, _terrainTexture);
 
         _generator = TerrainGeneratorBase.Create(Generator, Seed, BaseHeight, Amplitude, Frequency, Octaves);
 

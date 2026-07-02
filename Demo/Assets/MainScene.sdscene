@@ -52,15 +52,15 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 20.0
+                        Intensity: 3.2
         -   Entity:
                 Id: e5e774ea-68a6-43d6-a4dd-d9d05649e71e
                 Name: Camera
                 Components:
                     e9b93a6846c4c4c588207c60045c841e: !TransformComponent
                         Id: 88c33377-d328-41e4-8c19-57a68d137dbf
-                        Position: {X: 96.0, Y: 78.0, Z: 240.0}
-                        Rotation: {X: -0.2164396, Y: 0.0, Z: 0.0, W: 0.9762961}
+                        Position: {X: 160.0, Y: 190.0, Z: 520.0}
+                        Rotation: {X: -0.1736482, Y: 0.0, Z: 0.0, W: 0.9848077}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     02529a8ed0d80874f6a6cacb88a82214: !CameraComponent
@@ -71,7 +71,7 @@ Hierarchy:
                     a88d892a07533b3d65567b660e764611: !Demo.BasicCameraController,Demo
                         Id: aa0d34bb-97e2-466c-a283-c69ecd4690c0
                         Gamepad: false
-                        KeyboardMovementSpeed: {X: 20.0, Y: 20.0, Z: 20.0}
+                        KeyboardMovementSpeed: {X: 50.0, Y: 50.0, Z: 50.0}
                         TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
                         SpeedFactor: 5.0
                         KeyboardRotationSpeed: {X: 3.0, Y: 3.0}
@@ -90,13 +90,13 @@ Hierarchy:
                     d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2: !StrideMarchingCubeSystem.VoxelTerrain,StrideMarchingCubeSystem
                         Id: 2b2b3c4d-0003-4003-8003-000000000003
                         ChunkSize: 32
-                        MapChunksX: 6
-                        MapChunksY: 2
-                        MapChunksZ: 6
+                        MapChunksX: 10
+                        MapChunksY: 3
+                        MapChunksZ: 10
                         Generator: Perlin
                         Seed: 1337
-                        BaseHeight: 20.0
-                        Amplitude: 22.0
-                        Frequency: 0.02
-                        Octaves: 4
-                        ChunksPerFrame: 4
+                        BaseHeight: 44.0
+                        Amplitude: 48.0
+                        Frequency: 0.012
+                        Octaves: 5
+                        ChunksPerFrame: 6

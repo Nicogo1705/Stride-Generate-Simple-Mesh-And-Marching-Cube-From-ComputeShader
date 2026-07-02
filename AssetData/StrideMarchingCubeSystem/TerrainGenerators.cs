@@ -37,10 +37,13 @@ public abstract class TerrainGeneratorBase : ITerrainGenerator
     /// <summary>Number of fractal octaves.</summary>
     public int Octaves { get; set; } = 4;
 
-    /// <summary>Surfaces at or above this height get Snow.</summary>
-    public float SnowHeight { get; set; } = 42f;
-    /// <summary>Surfaces at or below this height get Sand.</summary>
-    public float SandHeight { get; set; } = 3f;
+    /// <summary>Valleys are clamped to at least this height so deep dips don't punch holes in the map floor.</summary>
+    public float MinSurface { get; set; } = 2f;
+
+    /// <summary>Snow line — auto-scaled to the top of the height range so peaks always get snow.</summary>
+    protected float SnowLine => BaseHeight + Amplitude * 0.32f;
+    /// <summary>Sand line — auto-scaled to the bottom of the height range so basins always get sand.</summary>
+    protected float SandLine => BaseHeight - Amplitude * 0.32f;
 
     protected TerrainGeneratorBase(int seed) => Noise = new Noise(seed);
 
@@ -59,7 +62,13 @@ public abstract class TerrainGeneratorBase : ITerrainGenerator
             for (int z = 0; z < n; z++)
             {
                 float wz = worldZ0 + z;
-                float surface = SurfaceHeight(wx, wz);
+                float surface = MathF.Max(SurfaceHeight(wx, wz), MinSurface);
+
+                // Surface slope (magnitude of the height gradient) → rocky cliffs.
+                float hx = SurfaceHeight(wx + 1, wz) - SurfaceHeight(wx - 1, wz);
+                float hz = SurfaceHeight(wx, wz + 1) - SurfaceHeight(wx, wz - 1);
+                float slope = MathF.Sqrt(hx * hx + hz * hz) * 0.5f;
+
                 for (int y = 0; y < n; y++)
                 {
                     float wy = worldY0 + y;
@@ -70,24 +79,26 @@ public abstract class TerrainGeneratorBase : ITerrainGenerator
                         air = MathF.Max(air, Carve(wx, wy, wz, surface));
 
                     byte density = (byte)(air * 255f);
-                    TerrainType mat = Material(wy, surface);
+                    TerrainType mat = Material(wy, surface, slope);
                     grid.Set(density, mat, x, y, z);
                 }
             }
         }
     }
 
-    protected TerrainType Material(float worldY, float surface)
+    protected TerrainType Material(float worldY, float surface, float slope)
     {
         float depth = surface - worldY;
-        if (depth < 1.0f)
-        {
-            if (surface >= SnowHeight) return TerrainType.Snow;
-            if (surface <= SandHeight) return TerrainType.Sand;
-            return TerrainType.Grass;
-        }
-        if (depth < 4f) return TerrainType.Dirt;
-        return TerrainType.Rock;
+        // Sub-surface: a thin dirt layer over rock.
+        if (depth >= 1.0f)
+            return depth < 4f ? TerrainType.Dirt : TerrainType.Rock;
+
+        // Surface skin as clear height bands: snow caps, sand basins, rock on real
+        // cliffs, grass everywhere in between.
+        if (surface >= SnowLine) return TerrainType.Snow;
+        if (surface <= SandLine) return TerrainType.Sand;
+        if (slope > 1.0f) return TerrainType.Rock;
+        return TerrainType.Grass;
     }
 
     protected static float SmoothStep(float edge0, float edge1, float x)
