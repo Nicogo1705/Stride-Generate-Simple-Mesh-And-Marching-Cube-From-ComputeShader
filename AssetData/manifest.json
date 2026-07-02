@@ -8,7 +8,7 @@
   "tags": ["marching-cubes", "voxel", "terrain", "compute-shader", "procedural", "noise", "multi-material", "gpu", "sdsl"],
   "license": "MIT",
   "thumbnail": "thumbnail.png",
-  "media": [],
+  "media": ["media/screenshot.png"],
   "dependencies": [],
   "defaultImport": "local"
 }
