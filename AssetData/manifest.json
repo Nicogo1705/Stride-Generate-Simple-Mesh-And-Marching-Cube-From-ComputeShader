@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "com.nicogo.marching-cube-compute-shader",
+  "name": "Stride Marching Cubes Voxel Terrain",
+  "authors": [{ "name": "Nicogo", "url": "https://github.com/Nicogo1705" }],
+  "description": "GPU Marching Cubes terrain from a compute shader: fill voxel chunks with one of three built-in noise generators (Perlin hills, ridged mountains, 3D caves), mesh them on the GPU with smooth gradient normals, and shade them with a per-surface multi-material colour palette. Drop the VoxelTerrain component in and get a map.",
+  "category": "Shaders",
+  "tags": ["marching-cubes", "voxel", "terrain", "compute-shader", "procedural", "noise", "multi-material", "gpu", "sdsl"],
+  "license": "MIT",
+  "thumbnail": "thumbnail.png",
+  "media": [],
+  "dependencies": [],
+  "defaultImport": "local"
+}

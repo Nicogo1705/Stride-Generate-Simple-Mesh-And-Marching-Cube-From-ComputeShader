@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>StrideMarchingCubeSystem</RootNamespace>
+    <AssemblyName>StrideMarchingCubeSystem</AssemblyName>
+  </PropertyGroup>
+  <!-- Reusable library: GPU Marching Cubes mesher, voxel terrain + noise generators, and the SDSL shaders. -->
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="4.4.0.2" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.4.0.2" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+  <!--
+    Stride 4.4 ships a build-time Roslyn source generator that can reject compute/color shaders using
+    the classic `stage`/`rgroup` syntax. Remove the .sdsl files from @(AdditionalFiles) just before
+    CoreCompile so the C# build succeeds. The shaders are still compiled by the Stride asset pipeline
+    at asset-compile/runtime, and every shader parameter is bound by string name (no generated *Keys).
+  -->
+  <Target Name="DisableSdslSourceGeneratorForShaders" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <AdditionalFiles Remove="Effects\GenerateMarchingCube.sdsl" />
+      <AdditionalFiles Remove="Effects\TerrainDiffuse.sdsl" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,0 +1,324 @@
+// Compute shader: Marching Cubes mesh generation from VoxelGrid.
+// Input: flat uint[] voxel data (density | material << 8).
+// Output: MCVertex[] (Position, Normal, PackedMaterial) + atomic counter.
+
+shader GenerateMarchingCube : ComputeShaderBase
+{
+    // ── MCVertex output struct (must match C# MCVertex layout: 28 bytes) ───
+    struct MCVertex
+    {
+        float3 Position;
+        float3 Normal;
+        uint   PackedMaterial;  // bits[0:7]=MatId, [8:15]=MatId2, [16:31]=BlendWeight16
+    };
+
+    // ── Input buffers (read-only) ──────────────────────────────────────────
+    stage StructuredBuffer<uint> VoxelData;     // density | (material << 8), AxisLength^3 entries
+    stage StructuredBuffer<int>  EdgeTable;     // 256 entries (edge bitmask per cubeIndex)
+    stage StructuredBuffer<int>  TriTable;      // 256 * 16 entries (flattened, -1 padded)
+
+    // ── Output buffers ─────────────────────────────────────────────────────
+    stage RWStructuredBuffer<MCVertex> OutVertices;
+    stage RWStructuredBuffer<uint>     Counter;  // Counter[0] = current vertex count
+
+    // ── Parameters ─────────────────────────────────────────────────────────
+    stage int   GridSize;       // ChunkSize / LodStep (cells per axis)
+    stage int   AxisLength;     // 49 (Size + 1)
+    stage int   AxisLengthSq;   // 49 * 49 = 2401
+    stage float Isolevel;       // 0.5
+    stage int   LodStep;        // 1, 2, 4, 8
+    stage int   MaxVertices;    // overflow protection
+    stage float3 ChunkOffset;   // world-space offset added to vertex positions
+
+    // ── Constants ──────────────────────────────────────────────────────────
+
+    // Marching cubes cube corner offsets (standard convention)
+    static const int3 CubeCorners[8] =
+    {
+        int3(0,0,0), int3(1,0,0), int3(1,0,1), int3(0,0,1),
+        int3(0,1,0), int3(1,1,0), int3(1,1,1), int3(0,1,1)
+    };
+
+    // Edge-to-corner pairs (12 edges, each connects 2 corners)
+    static const int2 EdgeCorners[12] =
+    {
+        int2(0,1), int2(1,2), int2(2,3), int2(3,0),
+        int2(4,5), int2(5,6), int2(6,7), int2(7,4),
+        int2(0,4), int2(1,5), int2(2,6), int2(3,7)
+    };
+
+    static const int TypeCount = 14;
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    stage int VoxelIndex(int x, int y, int z)
+    {
+        return x * AxisLengthSq + y * AxisLength + z;
+    }
+
+    stage float SampleDensity(int x, int y, int z)
+    {
+        x = clamp(x, 0, AxisLength - 1);
+        y = clamp(y, 0, AxisLength - 1);
+        z = clamp(z, 0, AxisLength - 1);
+        return (float)(VoxelData[VoxelIndex(x, y, z)] & 0xFF) / 255.0;
+    }
+
+    stage uint SampleMaterial(int x, int y, int z)
+    {
+        x = clamp(x, 0, AxisLength - 1);
+        y = clamp(y, 0, AxisLength - 1);
+        z = clamp(z, 0, AxisLength - 1);
+        return (VoxelData[VoxelIndex(x, y, z)] >> 8) & 0xFF;
+    }
+
+    // Gradient normal from density field (smooth, not faceted)
+    stage float3 ComputeGradient(int3 pos)
+    {
+        float3 grad;
+        grad.x = SampleDensity(pos.x + 1, pos.y, pos.z)
+               - SampleDensity(pos.x - 1, pos.y, pos.z);
+        grad.y = SampleDensity(pos.x, pos.y + 1, pos.z)
+               - SampleDensity(pos.x, pos.y - 1, pos.z);
+        grad.z = SampleDensity(pos.x, pos.y, pos.z + 1)
+               - SampleDensity(pos.x, pos.y, pos.z - 1);
+
+        float len = length(grad);
+        return len > 0.001 ? grad / len : float3(0, 1, 0);
+    }
+
+    // Interpolate vertex position on edge between two corners
+    stage float3 InterpolatePosition(float3 p1, float3 p2, float v1, float v2)
+    {
+        float delta = v2 - v1;
+        if (abs(delta) < 0.000001) return p1;
+        float t = (Isolevel - v1) / delta;
+        return p1 + t * (p2 - p1);
+    }
+
+    // Interpolation factor (reused for position and normal lerp)
+    stage float InterpolateFactor(float v1, float v2)
+    {
+        float delta = v2 - v1;
+        if (abs(delta) < 0.000001) return 0.0;
+        return (Isolevel - v1) / delta;
+    }
+
+    // ── Pack helper ────────────────────────────────────────────────────────
+
+    stage uint PackMaterial(uint matId, uint matId2, float blendWeight)
+    {
+        uint bw = (uint)(saturate(blendWeight) * 65535.0);
+        return (matId & 0xFF) | ((matId2 & 0xFF) << 8) | (bw << 16);
+    }
+
+    /// Scan an MC edge at full voxel resolution to find the real surface
+    /// material. Walks from solid corner toward air corner, returns the
+    /// material of the last solid voxel before the transition.
+    /// Cost: at most LodStep samples per edge (1 at LOD 0, 8 at LOD 8).
+    stage uint ScanEdgeSurfaceMaterial(int3 solidPos, int3 airPos)
+    {
+        int3 diff = airPos - solidPos;
+        int3 stepDir = int3(sign(diff.x), sign(diff.y), sign(diff.z));
+        int totalSteps = max(max(abs(diff.x), abs(diff.y)), abs(diff.z));
+
+        int3 prev = solidPos;
+        for (int i = 1; i <= totalSteps; i++)
+        {
+            int3 cur = solidPos + stepDir * i;
+            float den = SampleDensity(cur.x, cur.y, cur.z);
+            if (den >= Isolevel) // found air → prev is the surface voxel
+                return SampleMaterial(prev.x, prev.y, prev.z);
+            prev = cur;
+        }
+        // All solid (shouldn't happen on active edge) — fallback
+        return SampleMaterial(prev.x, prev.y, prev.z);
+    }
+
+    // ── Compute entry point ────────────────────────────────────────────────
+
+    override void Compute()
+    {
+        uint3 id = streams.DispatchThreadId;
+
+        // Bounds check: skip threads outside the grid
+        if ((int)id.x >= GridSize || (int)id.y >= GridSize || (int)id.z >= GridSize)
+            return;
+
+        int baseX = (int)id.x * LodStep;
+        int baseY = (int)id.y * LodStep;
+        int baseZ = (int)id.z * LodStep;
+
+        // ── Sample 8 cube corners ──────────────────────────────────────
+
+        float densities[8];
+        int3  cornerPos[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int3 offset = CubeCorners[i] * LodStep;
+            int cx = min(baseX + offset.x, AxisLength - 1);
+            int cy = min(baseY + offset.y, AxisLength - 1);
+            int cz = min(baseZ + offset.z, AxisLength - 1);
+            cornerPos[i] = int3(cx, cy, cz);
+            densities[i] = SampleDensity(cx, cy, cz);
+        }
+
+        // ── Compute cube index (bitmask of inside corners) ─────────────
+
+        int cubeIndex = 0;
+        for (int i = 0; i < 8; i++)
+            if (densities[i] < Isolevel)
+                cubeIndex |= (1 << i);
+
+        // Early exit: entirely air (0) or entirely solid (255)
+        if (cubeIndex == 0 || cubeIndex == 255)
+            return;
+
+        // ── Interpolate edge vertices + gradient normals ────────────────
+        // Gradients are computed on-demand per active edge instead of being
+        // pre-cached in a `cornerGradients[8]` array. The pre-cache saved
+        // redundant `VoxelData` reads but allocated 24 floats of indexable
+        // temp registers per thread — at 4×4×4 thread groups that's fine,
+        // but combined with edgeVerts[12] + edgeNormals[12] + matWeights[14]
+        // it tripped HLSL X4714 ("temp registers × threads > 16384"). Reads
+        // re-hit the GPU L1/L2 cache so the runtime cost is negligible.
+
+        int edgeFlags = EdgeTable[cubeIndex];
+        float3 edgeVerts[12];
+        float3 edgeNormals[12];
+
+        for (int e = 0; e < 12; e++)
+        {
+            if ((edgeFlags & (1 << e)) == 0) continue;
+
+            int c1 = EdgeCorners[e].x;
+            int c2 = EdgeCorners[e].y;
+
+            float3 p1 = (float3)cornerPos[c1];
+            float3 p2 = (float3)cornerPos[c2];
+            float v1 = densities[c1];
+            float v2 = densities[c2];
+
+            float t = InterpolateFactor(v1, v2);
+            edgeVerts[e] = p1 + t * (p2 - p1);
+
+            // Smooth normal: lerp gradients computed on-demand from voxel data.
+            float3 n = lerp(ComputeGradient(cornerPos[c1]), ComputeGradient(cornerPos[c2]), t);
+            float nLen = length(n);
+            edgeNormals[e] = nLen > 0.0001 ? n / nLen : float3(0, 1, 0);
+        }
+
+        // ── Dominant + secondary material (full-resolution edge scan) ──
+        // For each active edge, walk at full voxel resolution from the solid
+        // corner toward the air corner to find the REAL surface transition.
+        // Returns the material of the last solid voxel before air.
+        // At LOD 0 this is a single lookup (identical to before).
+        // At LOD 8 this scans up to 8 voxels per edge — accurate surface color.
+
+        float matWeights[14] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        float totalWeight = 0;
+        for (int e = 0; e < 12; e++)
+        {
+            if ((edgeFlags & (1 << e)) == 0) continue;
+
+            int c1 = EdgeCorners[e].x;
+            int c2 = EdgeCorners[e].y;
+            bool c1Solid = densities[c1] < Isolevel;
+            int3 solidPos = c1Solid ? cornerPos[c1] : cornerPos[c2];
+            int3 airPos   = c1Solid ? cornerPos[c2] : cornerPos[c1];
+
+            uint surfMat = ScanEdgeSurfaceMaterial(solidPos, airPos);
+
+            if (surfMat < (uint)TypeCount)
+            {
+                matWeights[surfMat] += 1.0;
+                totalWeight += 1.0;
+            }
+        }
+
+        uint dominantMat = 0;
+        float maxWeight = 0;
+        for (int i = 0; i < TypeCount; i++)
+        {
+            if (matWeights[i] > maxWeight)
+            {
+                maxWeight = matWeights[i];
+                dominantMat = (uint)i;
+            }
+        }
+
+        // Secondary material + blend weight
+        uint secondMat = dominantMat;
+        float secondWeight = 0;
+        for (int i = 0; i < TypeCount; i++)
+        {
+            if ((uint)i == dominantMat) continue;
+            if (matWeights[i] > secondWeight)
+            {
+                secondWeight = matWeights[i];
+                secondMat = (uint)i;
+            }
+        }
+        float blendWeight = 0.0;
+        if (totalWeight > 0 && secondWeight > 0)
+            blendWeight = secondWeight / totalWeight;
+
+        // Pack once, reuse for all vertices in this cube
+        uint packed = PackMaterial(dominantMat, secondMat, blendWeight);
+
+        // ── Count triangles for this cube ───────────────────────────────
+
+        int triCount = 0;
+        for (int i = 0; i < 16; i += 3)
+        {
+            if (TriTable[cubeIndex * 16 + i] < 0) break;
+            triCount++;
+        }
+
+        if (triCount == 0) return;
+
+        // ── Atomic reserve space in output buffer ───────────────────────
+
+        uint numVerts = (uint)(triCount * 3);
+        uint baseIdx;
+        InterlockedAdd(Counter[0], numVerts, baseIdx);
+
+        // Overflow protection
+        if ((int)(baseIdx + numVerts) > MaxVertices)
+            return;
+
+        // ── Emit triangles ──────────────────────────────────────────────
+        // Winding order: reversed (row[i+2], row[i+1], row[i+0]) to match
+        // the CPU MarchingCubes convention (CW front face in Stride).
+
+        uint writeIdx = baseIdx;
+        for (int i = 0; i < 16; i += 3)
+        {
+            int e0 = TriTable[cubeIndex * 16 + i];
+            if (e0 < 0) break;
+
+            int e1 = TriTable[cubeIndex * 16 + i + 1];
+            int e2 = TriTable[cubeIndex * 16 + i + 2];
+
+            // Reversed winding: e2, e1, e0
+            MCVertex vA;
+            vA.Position       = edgeVerts[e2] + ChunkOffset;
+            vA.Normal         = edgeNormals[e2];
+            vA.PackedMaterial = packed;
+            OutVertices[writeIdx++] = vA;
+
+            MCVertex vB;
+            vB.Position       = edgeVerts[e1] + ChunkOffset;
+            vB.Normal         = edgeNormals[e1];
+            vB.PackedMaterial = packed;
+            OutVertices[writeIdx++] = vB;
+
+            MCVertex vC;
+            vC.Position       = edgeVerts[e0] + ChunkOffset;
+            vC.Normal         = edgeNormals[e0];
+            vC.PackedMaterial = packed;
+            OutVertices[writeIdx++] = vC;
+        }
+    }
+};

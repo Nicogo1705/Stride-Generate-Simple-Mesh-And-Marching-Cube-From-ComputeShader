@@ -1,0 +1,38 @@
+// Terrain surface albedo from a per-material colour palette.
+// PackedMaterial (from the MCVertex stream) is a uint:
+//   bits[0:7]=MatId, [8:15]=MatId2, [16:31]=BlendWeight16.
+// The uint attribute is NOT interpolated by the rasterizer (flat / provoking vertex),
+// so each triangle picks its dominant + secondary material and blends the two palette
+// colours. The palette is a tiny Nx1 texture built on the CPU from TerrainPalette — no
+// external image assets required. Lighting is applied by the material's shading model.
+
+shader TerrainDiffuse : ComputeColor
+{
+    // Packed material stream from the MCVertex format (uint = no interpolation).
+    stage stream uint PackedMaterial : PACKEDMATERIAL;
+
+    // Nx1 palette texture: texel i = colour of material id i.
+    rgroup PerMaterial
+    {
+        [Link("TerrainDiffuse.PaletteTex")]
+        stage Texture2D PaletteTex;
+    }
+
+    stage float4 SamplePalette(uint idx)
+    {
+        return PaletteTex.Load(int3((int)idx, 0, 0));
+    }
+
+    override float4 Compute()
+    {
+        uint packed = streams.PackedMaterial;
+        uint matId  = packed & 0xFF;
+        uint matId2 = (packed >> 8) & 0xFF;
+        float blend = (float)((packed >> 16) & 0xFFFF) / 65535.0;
+
+        float4 color = SamplePalette(matId);
+        if (blend >= 0.01)
+            color = lerp(color, SamplePalette(matId2), blend);
+        return color;
+    }
+};
